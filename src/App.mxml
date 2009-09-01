@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" width="100%" height="100%" creationComplete="init()">
+	
+	<mx:Script>
+		<![CDATA[
+					
+			import com.firestartermedia.lib.as3.events.DataServiceEvent;
+			import com.firestartermedia.lib.as3.data.XMLDataService;
+		
+			import mx.collections.ArrayCollection;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.http.mxml.HTTPService;
+					
+			[Bindable]
+			private var videoCategories:ArrayCollection;
+			
+			private var browser:FileReference;
+			private var dataToken:String;
+			private var uploadToken:String;
+			private var uploadURL:String;
+			
+			private function init():void
+			{
+				Security.loadPolicyFile( 'http://gdata.youtube.com/crossdomain.xml' );
+				
+				loadVideoCategories();
+			}
+			
+			private function loadVideoCategories():void
+			{
+				var service:XMLDataService = new XMLDataService();
+				
+				service.addEventListener( DataServiceEvent.READY, handleVideoCategories );				
+				
+				service.send( 'http://gdata.youtube.com/schemas/2007/categories.cat' );
+			}
+			
+			private function handleVideoCategories(e:DataServiceEvent):void
+			{
+				var data:XML = e.data as XML;
+				var categories:Array = [ ];
+				
+				for each ( var category:XML in data..*::category )
+				{
+					categories.push( category.@term.toString() );
+				}
+				
+				videoCategories = new ArrayCollection( categories );
+			}
+			
+			private function handleLoginButtonClicked():void
+			{
+				ExternalInterface.addCallback( 'handleLoginComplete', 	handleLoginComplete );
+				ExternalInterface.addCallback( 'handleUploadComplete', 	handleUploadComplete );
+				
+				ExternalInterface.call( 'doLogin' );
+			}
+			
+			public function handleLoginComplete(token:String):void
+			{
+				dataToken = token;
+				
+				stack.selectedIndex = 1;
+			}
+			
+			private function sendVideoData():void
+			{
+				var service:HTTPService = new HTTPService();
+				
+				service.contentType 				= 'application/atom+xml; charset=UTF-8';
+				service.headers[ 'Authorization' ] 	= 'AuthSub token="' + dataToken + '"';
+				service.headers[ 'GData-Version' ] 	= 2;
+				service.headers[ 'X-GData-Key' ] 	= 'key=ADD_YOUR_KEY_HERE';
+				service.method 						= 'POST';
+				service.request 					= '<?xml version="1.0"?><entry xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://gdata.youtube.com/schemas/2007">'
+													+ '<media:group><media:title type="plain">' + videoTitle.text + '</media:title><media:description type="plain">' + videoDescription.text 
+													+ '</media:description><media:category scheme="http://gdata.youtube.com/schemas/2007/categories.cat">' + ComboBox( videoCategory ).selectedItem.toString() 
+													+ '</media:category><media:keywords>' + videoKeywords.text + '</media:keywords></media:group></entry>';
+				service.resultFormat 				= 'e4x';
+				service.url 						= 'http://gdata.youtube.com/action/GetUploadToken';
+								
+				service.addEventListener( ResultEvent.RESULT, 		handleVideoDataResult );
+								
+				service.send();
+			}
+			
+			private function handleVideoDataResult(e:ResultEvent):void
+			{
+				var data:XML = e.result as XML;
+				
+				uploadToken				= data..token;
+				uploadURL				= data..url;
+				
+				stack.selectedIndex		= 2;
+				
+				ExternalInterface.call( 'showUpload', uploadURL, uploadToken );
+			}
+			
+			/* private function browseForFile():void
+			{
+				if ( !browser )
+				{
+					browser = new FileReference();
+					
+					browser.addEventListener( Event.SELECT, 					handleFileSelected );
+					browser.addEventListener( ProgressEvent.PROGRESS, 			handleFileUploadProgress );
+					//browser.addEventListener( DataEvent.UPLOAD_COMPLETE_DATA, 	handleFileUploaded );
+				}
+				
+				browser.browse();
+				
+				videoUploadMessage.text = '';
+			}
+			
+			private function handleFileSelected(e:Event):void
+			{
+				videoUploadMessage.text = browser.name;
+				
+				videoUploadButton.visible = true;
+			}
+			
+			private function handleFileUploadProgress(e:ProgressEvent):void
+			{
+				videoUploadProgress.maximum		= e.bytesTotal;
+				videoUploadProgress.minimum		= 0;
+				
+				videoUploadProgress.setProgress( e.bytesLoaded, e.bytesTotal );
+				
+				if ( e.bytesLoaded === e.bytesTotal )
+				{
+					handleFileUploaded();
+				}
+			} 
+			
+			private function handleFileUploaded(e:DataEvent=null):void
+			{
+				stack.selectedIndex = 4;
+			} */
+			
+			private function uploadFile():void
+			{
+				/* var request:URLRequest = new URLRequest();
+				var vars:URLVariables = new URLVariables();
+				
+				vars.token 			= uploadToken;
+				
+				request.data		= vars;
+				request.method		= URLRequestMethod.POST;
+				request.url			= uploadURL + '?nexturl=http://localhost:9852/upload-response.html';
+				
+				browser.upload( request, 'file' ); */
+				
+				ExternalInterface.call( 'doUpload' );
+				
+				stack.selectedIndex = 3;
+			}
+			
+			public function handleUploadComplete(videoId:String):void
+			{
+				videoUploadMessage.text = 'Your video has been upload and the id is: ' + videoId;
+				
+				stack.selectedIndex = 4;
+			}
+			
+		]]>
+	</mx:Script>
+	
+	<mx:Style source="styles.css" />
+	
+	<mx:ViewStack id="stack" width="100%" height="100%" creationPolicy="all">
+		<mx:Box width="100%" height="100%">
+			<mx:Button id="loginButton" label="Click here to log in to YouTube" click="handleLoginButtonClicked()" />
+			
+		</mx:Box>
+		
+		<mx:Box width="100%" height="100%">
+			<mx:Grid>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Text text="Title" />
+						
+					</mx:GridItem>
+					
+					<mx:GridItem>
+						<mx:TextInput id="videoTitle" text="" />
+						
+					</mx:GridItem>
+					
+				</mx:GridRow>
+				
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Text text="Description" />
+						
+					</mx:GridItem>
+					
+					<mx:GridItem>
+						<mx:TextInput id="videoDescription" text="" />
+						
+					</mx:GridItem>
+					
+				</mx:GridRow>
+				
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Text text="Keywords" />
+						
+					</mx:GridItem>
+					
+					<mx:GridItem>
+						<mx:TextInput id="videoKeywords" text="" />
+						
+					</mx:GridItem>
+					
+				</mx:GridRow>
+				
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Text text="Category" />
+						
+					</mx:GridItem>
+					
+					<mx:GridItem>
+						<mx:ComboBox id="videoCategory" dataProvider="{videoCategories}" />
+						
+					</mx:GridItem>
+					
+				</mx:GridRow>
+				
+				<mx:GridRow>
+					<mx:GridItem>
+					</mx:GridItem>
+					
+					<mx:GridItem>
+						<mx:Button label="Submit" click="sendVideoData()" />
+						
+					</mx:GridItem>
+					
+				</mx:GridRow>
+				
+			</mx:Grid>
+			
+		</mx:Box>
+		
+		<mx:Box width="100%" height="100%">
+			<!--<mx:Grid>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Button label="Browse for video..." id="videoUploadBrowseButton" click="browseForFile()" />
+						
+					</mx:GridItem>
+					
+					<mx:GridItem>
+						<mx:Text id="videoUploadMessage" />						
+						
+					</mx:GridItem>
+					
+				</mx:GridRow>
+				
+			</mx:Grid>-->
+			
+			<mx:Button label="Upload this video" id="videoUploadButton" click="uploadFile()" />
+			
+		</mx:Box>
+		
+		<mx:Box width="100%" height="100%">
+			<mx:ProgressBar id="videoUploadProgress" width="300" indeterminate="true" />
+			
+		</mx:Box>
+		
+		<mx:Box width="100%" height="100%">
+			<mx:Text id="videoUploadMessage" />
+									
+		</mx:Box>
+		
+	</mx:ViewStack>
+	
+</mx:Application>

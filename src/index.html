@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<!-- 
+/**
+ * @author			Ahmed Nuaman (http://www.ahmednuaman.com)
+ * @langversion		1.1
+ * 
+ * This work is licenced under the Creative Commons Attribution-Share Alike 2.0 UK: England & Wales License. 
+ * To view a copy of this licence, visit http://creativecommons.org/licenses/by-sa/2.0/uk/ or send a letter 
+ * to Creative Commons, 171 Second Street, Suite 300, San Francisco, California 94105, USA.
+*/
+-->
+<head>
+	<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+	<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+	<script type="text/javascript">
+	<!--
+		var flash;
+	
+		function embedFlash()
+		{
+			$('#uploadDiv').hide();
+			$('#youtubeIframe').hide();
+			
+			swfobject.embedSWF( 'App.swf', 'flash', '100%', '500', '9.0.0' , '', { }, { 'menu': 'false' }, { 'id': 'flashApp' } );
+			
+			flash = document.getElementById( 'flashApp' );
+		}
+		
+		function doLogin()
+		{
+			$('#youtubeAuthForm').submit();
+			
+			$('#youtubeIframe').show();
+		}
+		
+		function handleLogin(token)
+		{
+			$('#youtubeIframe').hide();
+			
+			flash.handleLoginComplete( token );
+		}
+		
+		function showUpload(url, token)
+		{
+			$('#uploadDiv').show();
+			
+			$('#youtubeUploadForm').attr( 'action', url + '?nexturl=http://localhost:9852/upload-response.html' );
+			
+			$('#youtubeUploadForm input[name=token]').val( token );
+		}
+		
+		function doUpload()
+		{
+			$('#uploadDiv').hide();
+			
+			$('#youtubeUploadForm').submit();
+			
+			$('#youtubeIframe').show();
+		}
+		
+		function handleUpload(videoId)
+		{
+			$('#youtubeIframe').hide();
+			
+			flash.handleUploadComplete( videoId );
+		}
+		
+		google.setOnLoadCallback( embedFlash );
+		
+		google.load( 'jquery', 		'1' );
+		google.load( 'swfobject', 	'2' );
+	-->
+	</script>
+	<style type="text/css" media="screen">
+	<!--
+		html, body
+		{
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+		}
+		.hide 
+		{
+			display: none;
+			visibility: hidden;
+		}
+		#uploadDiv
+		{
+			position: absolute;
+			display: block;
+			top: 100px;
+			width: 100%;
+			text-align: center;
+		}
+		#youtubeIframe 
+		{
+			position: absolute;
+			top: 0;
+		}
+	-->
+	</style>
+	<title>YouTube Auth Test</title>
+</head>
+<body>
+	<div id="flash"></div>
+	
+	<form id="youtubeAuthForm" action="https://www.google.com/accounts/AuthSubRequest" method="post" target="youtubeIframe" class="hide">
+		<input type="hidden" name="next" value="http://localhost:9852/auth-response.html" />
+		<input type="hidden" name="scope" value="http://gdata.youtube.com" />
+		<input type="hidden" name="session" value="0" />
+		<input type="hidden" name="secure" value="0" />
+	</form>
+	
+	<div id="uploadDiv">
+		<form id="youtubeUploadForm" action="" method="post" enctype="multipart/form-data" target="youtubeIframe">
+			<input type="file" name="file" value="" />
+			<input type="hidden" name="token" value="" />
+		</form>
+	</div>
+	
+	<iframe name="youtubeIframe" id="youtubeIframe" width="100%" height="500"></iframe>
+</body>
+</html>

@@ -22,7 +22,7 @@
 			$('#uploadDiv').hide();
 			$('#youtubeIframe').hide();
 			
-			swfobject.embedSWF( 'App.swf', 'flash', '100%', '500', '9.0.0' , '', { }, { 'menu': 'false' }, { 'id': 'flashApp' } );
+			swfobject.embedSWF( 'App.swf', 'flash', '100%', '500', '9.0.0' , '', { 'gdataKey': 'YOUR_KEY' }, { 'menu': 'false' }, { 'id': 'flashApp' } );
 			
 			flash = document.getElementById( 'flashApp' );
 		}

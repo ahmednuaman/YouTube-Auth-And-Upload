@@ -10,11 +10,11 @@
 			import mx.collections.ArrayCollection;
 			import mx.rpc.events.ResultEvent;
 			import mx.rpc.http.mxml.HTTPService;
-					
+			
 			[Bindable]
 			private var videoCategories:ArrayCollection;
 			
-			private var browser:FileReference;
+			private var gdataKey:String;
 			private var dataToken:String;
 			private var uploadToken:String;
 			private var uploadURL:String;
@@ -22,6 +22,8 @@
 			private function init():void
 			{
 				Security.loadPolicyFile( 'http://gdata.youtube.com/crossdomain.xml' );
+				
+				gdataKey = LoaderInfo( root ).parameters.gdataKey;
 				
 				loadVideoCategories();
 			}
@@ -70,7 +72,7 @@
 				service.contentType 				= 'application/atom+xml; charset=UTF-8';
 				service.headers[ 'Authorization' ] 	= 'AuthSub token="' + dataToken + '"';
 				service.headers[ 'GData-Version' ] 	= 2;
-				service.headers[ 'X-GData-Key' ] 	= 'key=ADD_YOUR_KEY_HERE';
+				service.headers[ 'X-GData-Key' ] 	= 'key=' + gdataKey;
 				service.method 						= 'POST';
 				service.request 					= '<?xml version="1.0"?><entry xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://gdata.youtube.com/schemas/2007">'
 													+ '<media:group><media:title type="plain">' + videoTitle.text + '</media:title><media:description type="plain">' + videoDescription.text 
@@ -96,60 +98,8 @@
 				ExternalInterface.call( 'showUpload', uploadURL, uploadToken );
 			}
 			
-			/* private function browseForFile():void
-			{
-				if ( !browser )
-				{
-					browser = new FileReference();
-					
-					browser.addEventListener( Event.SELECT, 					handleFileSelected );
-					browser.addEventListener( ProgressEvent.PROGRESS, 			handleFileUploadProgress );
-					//browser.addEventListener( DataEvent.UPLOAD_COMPLETE_DATA, 	handleFileUploaded );
-				}
-				
-				browser.browse();
-				
-				videoUploadMessage.text = '';
-			}
-			
-			private function handleFileSelected(e:Event):void
-			{
-				videoUploadMessage.text = browser.name;
-				
-				videoUploadButton.visible = true;
-			}
-			
-			private function handleFileUploadProgress(e:ProgressEvent):void
-			{
-				videoUploadProgress.maximum		= e.bytesTotal;
-				videoUploadProgress.minimum		= 0;
-				
-				videoUploadProgress.setProgress( e.bytesLoaded, e.bytesTotal );
-				
-				if ( e.bytesLoaded === e.bytesTotal )
-				{
-					handleFileUploaded();
-				}
-			} 
-			
-			private function handleFileUploaded(e:DataEvent=null):void
-			{
-				stack.selectedIndex = 4;
-			} */
-			
 			private function uploadFile():void
-			{
-				/* var request:URLRequest = new URLRequest();
-				var vars:URLVariables = new URLVariables();
-				
-				vars.token 			= uploadToken;
-				
-				request.data		= vars;
-				request.method		= URLRequestMethod.POST;
-				request.url			= uploadURL + '?nexturl=http://localhost:9852/upload-response.html';
-				
-				browser.upload( request, 'file' ); */
-				
+			{				
 				ExternalInterface.call( 'doUpload' );
 				
 				stack.selectedIndex = 3;
@@ -243,21 +193,6 @@
 		</mx:Box>
 		
 		<mx:Box width="100%" height="100%">
-			<!--<mx:Grid>
-				<mx:GridRow>
-					<mx:GridItem>
-						<mx:Button label="Browse for video..." id="videoUploadBrowseButton" click="browseForFile()" />
-						
-					</mx:GridItem>
-					
-					<mx:GridItem>
-						<mx:Text id="videoUploadMessage" />						
-						
-					</mx:GridItem>
-					
-				</mx:GridRow>
-				
-			</mx:Grid>-->
 			
 			<mx:Button label="Upload this video" id="videoUploadButton" click="uploadFile()" />
 			

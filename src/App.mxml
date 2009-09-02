@@ -23,7 +23,7 @@
 			{
 				Security.loadPolicyFile( 'http://gdata.youtube.com/crossdomain.xml' );
 				
-				gdataKey = LoaderInfo( root ).parameters.gdataKey;
+				gdataKey = Application.application.parameters.gdataKey;
 				
 				loadVideoCategories();
 			}

@@ -2,4 +2,12 @@ Box
 {
 	horizontalAlign: center;
 	verticalAlign: middle;
+	fontFamily: Arial;
+}
+@font-face
+{
+	fontFamily: Arial;
+	fontWeight: normal;
+	fontStyle: normal;
+	src: local("Arial");
 }

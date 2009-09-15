@@ -35,9 +35,13 @@
 <body>
 	Please wait...
 	
+	<div id="debug">
+		
+	</div>
 	<script type="text/javascript">
 	<!--
 		parent.handleLogin( getToken() );
+		document.getElementById( 'debug' ).innerHTML = window.location.hash + ' ' + getToken();
 	-->
 	</script>
 </body>
